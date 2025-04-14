@@ -1,99 +1,92 @@
+import requests
+from bs4 import BeautifulSoup
 import lyricsgenius
-import difflib
 
-genius_api_token = "i0hXzddGbJLbNBLiJ7F8VM430P2mv_maQBFw48U7g4cP4wpw5QJPIBczcksGXUFy"
-genius = lyricsgenius.Genius(genius_api_token, remove_section_headers=True, verbose=False)
+genius_api_token = "YOUR_GENIUS_API_TOKEN"
+genius = lyricsgenius.Genius(genius_api_token, verbose=False)
+genius.timeout = 5
 
-def fuzzy_match_song(song_title, artist_name, max_songs=5):
-    artist = genius.search_artist(artist_name, max_songs=max_songs, get_full_info=False)
-    if not artist or not artist.songs:
+def scrape_lyrics_from_url(url):
+    try:
+        page = requests.get(url, timeout=5)
+        soup = BeautifulSoup(page.text, "html.parser")
+        lyrics_divs = soup.find_all("div", {"data-lyrics-container": "true"})
+        lyrics = "\n".join([div.get_text(separator="\n").strip() for div in lyrics_divs])
+        return lyrics.strip()
+    except Exception as e:
+        print(f"Error scraping lyrics: {e}")
+        return None
+
+def search_song_results(query, max_results=10):
+    try:
+        hits = genius.search(query, per_page=max_results)["hits"]
+        return [hit["result"] for hit in hits]
+    except Exception as e:
+        print(f"Search failed: {e}")
         return []
-
-    top_songs = [(song.title.strip(), song) for song in artist.songs]
-    titles = [title for title, _ in top_songs]
-    matches = difflib.get_close_matches(song_title, titles, n=2, cutoff=0.3)  # Top 2 from artist
-
-    return [(title, song_obj) for title, song_obj in top_songs if title in matches]
-
-def fuzzy_match_global(song_title, max_results=10):
-    results = genius.search(song_title, per_page=max_results)["hits"]
-    all_titles = []
-    title_map = {}
-
-    for hit in results:
-        result = hit["result"]
-        title = result["title"]
-        artist = result["primary_artist"]["name"]
-        combo = f"{title} by {artist}"
-        all_titles.append(combo)
-        title_map[combo] = (title, artist)
-
-    best_matches = difflib.get_close_matches(song_title, all_titles, n=3, cutoff=0.3)
-    return [title_map[match] for match in best_matches]
 
 # ----- Step 1: Get user input -----
 user_input = input("Enter song name (or 'Song by Artist'): ")
+if not user_input:
+    print("No input provided.")
+    exit()
 
-# ----- Step 2: Try exact match -----
-song_title = user_input
-artist_name = None
-song = None
-
+# ----- Step 2: Determine query + filters -----
 if " by " in user_input.lower():
     by_index = user_input.lower().index(" by ")
-    song_title = user_input[:by_index].strip()
-    artist_name = user_input[by_index + 4:].strip()
-    print(f"Searching for '{song_title}' by '{artist_name}'...")
-    song = genius.search_song(song_title, artist_name)
+    song_input = user_input[:by_index].strip()
+    artist_input = user_input[by_index + 4:].strip()
+    query = f"{song_input} {artist_input}"
+    filter_title = song_input.lower()
+    filter_artist = artist_input.lower()
 else:
-    print(f"Searching for '{song_title}'...")
-    song = genius.search_song(song_title)
+    query = user_input
+    filter_title = user_input.lower()
+    filter_artist = None
 
-# ----- Step 3: Handle result -----
-if song:
-    print(f"Found: '{song.title}' by {song.artist}\n")
-    print(song.lyrics)
-else:
-    print("Song not found. Finding closest matches...")
-    artist_matches = []
-    global_matches = []
+print(f"Searching Genius for: '{query}'...")
 
-    if artist_name:
-        artist_matches = fuzzy_match_song(song_title, artist_name)
-    global_matches = fuzzy_match_global(song_title)
+# ----- Step 3: Search Genius -----
+results = search_song_results(query, max_results=10)
 
-    combined_options = []
+# ----- Step 4: Filter Results -----
+input_words = user_input.lower().split()
+filtered_results = []
 
-    # Add artist-based matches (top 2)
-    for title, song_obj in artist_matches:
-        combined_options.append((title, song_obj.artist, song_obj))
+for res in results:
+    title = res["title"].lower()
+    artist = res["primary_artist"]["name"].lower()
+    combined = f"{title} {artist}"
 
-    # Add global matches (next 3)
-    for title, artist in global_matches:
-        combined_options.append((title, artist, None))
+    if any(word in combined for word in input_words):
+        filtered_results.append(res)
 
-    if combined_options:
-        print("\nClosest matches:")
-        for i, (title, artist, _) in enumerate(combined_options, 1):
-            print(f"{i}. '{title}' by {artist}")
-        try:
-            choice = int(input("\nEnter the number of the song you'd like to see lyrics for (or 0 to cancel): "))
-            if 1 <= choice <= len(combined_options):
-                selected = combined_options[choice - 1]
-                if selected[2]:  # We already have the song object
-                    song = selected[2]
-                else:
-                    # Search again to fetch full song and lyrics
-                    song = genius.search_song(selected[0], selected[1])
 
-                if song:
-                    print(f"\nLyrics for '{song.title}' by {song.artist}:\n")
-                    print(song.lyrics)
-                else:
-                    print("Lyrics not found.")
-            else:
-                print("Cancelled.")
-        except ValueError:
-            print("Invalid input.")
+# ----- Step 5: Display or exit -----
+if not filtered_results:
+    print("No matching results found.")
+    exit()
+
+print("\nMatching results:")
+for i, result in enumerate(filtered_results, 1):
+    print(f"{i}. '{result['title']}' by {result['primary_artist']['name']}")
+
+try:
+    choice = int(input("\nEnter the number of the song you'd like to see lyrics for (or 0 to cancel): "))
+    if 1 <= choice <= len(filtered_results):
+        selected = filtered_results[choice - 1]
+        title = selected["title"]
+        artist = selected["primary_artist"]["name"]
+        url = selected["url"]
+
+        print(f"\nFetching lyrics for '{title}' by {artist}...")
+        lyrics = scrape_lyrics_from_url(url)
+        if lyrics:
+            print(f"\nLyrics for '{title}' by {artist}:\n")
+            print(lyrics)
+        else:
+            print("Lyrics not found.")
     else:
-        print("No similar songs found.")
+        print("Cancelled.")
+except ValueError:
+    print("Invalid input.")

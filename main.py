@@ -54,12 +54,13 @@ if song:
     print(f"Found: '{song.title}' by {song.artist}\n")
     print(song.lyrics)
 else:
+    print("Song not found. Finding closest matches...")
     artist_matches = []
     global_matches = []
 
     if artist_name:
         artist_matches = fuzzy_match_song(song_title, artist_name)
-    global_matches = fuzzy_match_global(user_input)
+    global_matches = fuzzy_match_global(song_title)
 
     combined_options = []
 

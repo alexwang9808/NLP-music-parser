@@ -32,7 +32,7 @@ def fuzzy_match_global(song_title, max_results=10):
     return [title_map[match] for match in best_matches]
 
 # ----- Step 1: Get user input -----
-user_input = input("Enter song name (or 'Song by Artist'): ").strip()
+user_input = input("Enter song name (or 'Song by Artist'): ")
 
 # ----- Step 2: Try exact match -----
 song_title = user_input

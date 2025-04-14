@@ -26,7 +26,7 @@ def search_song_results(query, max_results=10):
         return []
 
 # ----- Step 1: Get user input -----
-user_input = input("Enter song name (or 'Song by Artist'): ").strip()
+user_input = input("Enter song name (or 'Song by Artist'): ")
 if not user_input:
     print("No input provided.")
     exit()

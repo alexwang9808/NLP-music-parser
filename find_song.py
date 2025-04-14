@@ -44,7 +44,7 @@ else:
     filter_title = user_input.lower()
     filter_artist = None
 
-print(f"Searching Genius for: '{query}'...")
+print(f"Searching Genius for: '{user_input}'...")
 
 # ----- Step 3: Search Genius -----
 results = search_song_results(query, max_results=10)

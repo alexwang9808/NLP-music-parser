@@ -1,21 +1,48 @@
 import requests
 from bs4 import BeautifulSoup
 import lyricsgenius
+import re
 
-genius_api_token = "YOUR_GENIUS_API_TOKEN"
+genius_api_token = "dpNORtcXZRRerdv16ABRj1p7H6L4Lg7eBLAeJFo1K3I1krbZWd4gjBk4kpXL0iXr"
 genius = lyricsgenius.Genius(genius_api_token, verbose=False)
 genius.timeout = 5
+
 
 def scrape_lyrics_from_url(url):
     try:
         page = requests.get(url, timeout=5)
         soup = BeautifulSoup(page.text, "html.parser")
         lyrics_divs = soup.find_all("div", {"data-lyrics-container": "true"})
-        lyrics = "\n".join([div.get_text(separator="\n").strip() for div in lyrics_divs])
-        return lyrics.strip()
+
+        # Combine all divs into one string
+        raw_lyrics = "\n".join(div.get_text(separator="\n").strip() for div in lyrics_divs)
+
+        # Split into lines
+        lines = raw_lyrics.strip().splitlines()
+
+        # Find start of actual lyrics (skipping junk)
+        start_index = 0
+        for i, line in enumerate(lines):
+            if line.startswith("[") or (len(line.strip()) > 0 and any(word in line.lower() for word in ["verse", "chorus", "intro", "outro", "bridge"])):
+                start_index = i
+                break
+        lines = lines[start_index:]
+
+        cleaned_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue  # Skip all blank lines
+            if re.match(r"^\[.*?\]$", line):
+                continue  # Skip all section headers like [Chorus]
+            cleaned_lines.append(line)
+
+        return "\n".join(cleaned_lines).strip()
+
     except Exception as e:
         print(f"Error scraping lyrics: {e}")
         return None
+
 
 def search_song_results(query, max_results=10):
     try:
@@ -24,69 +51,3 @@ def search_song_results(query, max_results=10):
     except Exception as e:
         print(f"Search failed: {e}")
         return []
-
-# ----- Step 1: Get user input -----
-user_input = input("Enter song name (or 'Song by Artist'): ")
-if not user_input:
-    print("No input provided.")
-    exit()
-
-# ----- Step 2: Determine query + filters -----
-if " by " in user_input.lower():
-    by_index = user_input.lower().index(" by ")
-    song_input = user_input[:by_index].strip()
-    artist_input = user_input[by_index + 4:].strip()
-    query = f"{song_input} {artist_input}"
-    filter_title = song_input.lower()
-    filter_artist = artist_input.lower()
-else:
-    query = user_input
-    filter_title = user_input.lower()
-    filter_artist = None
-
-print(f"Searching Genius for: '{user_input}'...")
-
-# ----- Step 3: Search Genius -----
-results = search_song_results(query, max_results=10)
-
-# ----- Step 4: Filter Results -----
-input_words = user_input.lower().split()
-filtered_results = []
-
-for res in results:
-    title = res["title"].lower()
-    artist = res["primary_artist"]["name"].lower()
-    combined = f"{title} {artist}"
-
-    if any(word in combined for word in input_words):
-        filtered_results.append(res)
-
-
-# ----- Step 5: Display or exit -----
-if not filtered_results:
-    print("No matching results found.")
-    exit()
-
-print("\nMatching results:")
-for i, result in enumerate(filtered_results, 1):
-    print(f"{i}. '{result['title']}' by {result['primary_artist']['name']}")
-
-try:
-    choice = int(input("\nEnter the number of the song you'd like to see lyrics for (or 0 to cancel): "))
-    if 1 <= choice <= len(filtered_results):
-        selected = filtered_results[choice - 1]
-        title = selected["title"]
-        artist = selected["primary_artist"]["name"]
-        url = selected["url"]
-
-        print(f"\nFetching lyrics for '{title}' by {artist}...")
-        lyrics = scrape_lyrics_from_url(url)
-        if lyrics:
-            print(f"\nLyrics for '{title}' by {artist}:\n")
-            print(lyrics)
-        else:
-            print("Lyrics not found.")
-    else:
-        print("Cancelled.")
-except ValueError:
-    print("Invalid input.")

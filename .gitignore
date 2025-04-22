@@ -17,11 +17,6 @@ htmlcov/
 coverage.xml
 *.cover
 
-# Virtual environments
-venv/
-env/
-ENV/
-
 # Data files
 *.csv
 *.json

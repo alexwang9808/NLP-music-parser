@@ -3,4 +3,5 @@ lyricsgenius==3.6.0
 beautifulsoup4==4.13.3
 pandas==2.2.3
 spacy==3.8.5
-en-core-web-sm==3.8.0
+torch==2.7.0
+transformers==4.51.3

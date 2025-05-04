@@ -10,7 +10,7 @@ genius.timeout = 5
 
 def scrape_lyrics_from_url(url):
     try:
-        page = requests.get(url, timeout=5)
+        page = requests.get(url, timeout=10)
         soup = BeautifulSoup(page.text, "html.parser")
         lyrics_divs = soup.find_all("div", {"data-lyrics-container": "true"})
 

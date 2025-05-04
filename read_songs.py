@@ -17,25 +17,20 @@ def get_sentiment(text):
     scores = {cls: float(probs[0][i]) for i, cls in enumerate(classes)}
     return scores
 
+
+def get_embedding(text):
+    return vector_model.encode(text)
+
+
 if __name__ == "__main__":
     df = pd.read_csv("spotify_data.csv", delimiter=',', on_bad_lines='error')
-
-
     vector_model = BGEM3FlagModel("BAAI/bge-m3")
-
     pc = Pinecone(api_key="d521ba70-bedc-4b48-9af8-82dda143a820")
     index = pc.Index("nlp-project")
 
-
-
-
-    def get_embedding(text):
-        return vector_model.encode(text)
-
-
     batch = []
-    chunk_id = 21000
-    for i in tqdm(range(21000, len(df))):
+    chunk_id = 28000
+    for i in tqdm(range(28000, len(df))):
         lyrics = df["text"].iloc[i]
         sentiment = get_sentiment(lyrics)
         vector = get_embedding(lyrics)["dense_vecs"]

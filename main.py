@@ -58,15 +58,17 @@ def embed_and_search(lyrics, selected_title, selected_artist):
 
     response = index.query(
         vector=embedding.tolist(),
-        top_k=20,
+        top_k=50,  # fetch more for sentiment filtering
         namespace="simple",
         include_metadata=True
     )
 
     selected_id = (selected_title.lower(), selected_artist.lower())
+    sentiment_target = None
     seen = set()
     count = 0
 
+    # ---- Top 10 Most Similar Songs ----
     print("\nTop 10 most similar songs based on lyrics:")
     for match in response["matches"]:
         meta = match["metadata"]
@@ -77,14 +79,69 @@ def embed_and_search(lyrics, selected_title, selected_artist):
 
         seen.add(song_id)
         print(f"- '{meta['song']}' by {meta['artist']} (Score: {match['score']:.4f})")
-        print("Sentiment Analysis:")
-        print(f"Positive: {float(meta.get('sentiment_positive', 0)):.2f}")
-        print(f"Neutral:  {float(meta.get('sentiment_neutral', 0)):.2f}")
-        print(f"Negative: {float(meta.get('sentiment_negative', 0)):.2f}\n")
 
         count += 1
         if count == 10:
             break
+
+    # ---- Get sentiment of selected song (from metadata) ----
+    for match in response["matches"]:
+        meta = match["metadata"]
+        song_id = (meta["song"].lower(), meta["artist"].lower())
+
+        if song_id == selected_id:
+            sentiment_target = {
+                "positive": float(meta.get("sentiment_positive", 0)),
+                "neutral":  float(meta.get("sentiment_neutral", 0)),
+                "negative": float(meta.get("sentiment_negative", 0)),
+            }
+            break
+
+    if not sentiment_target:
+        print("Sentiment of selected song not found in metadata.")
+        return
+
+    print(f"\nSentiment of '{selected_title}' by {selected_artist}:")
+    print(f"Positive: {sentiment_target['positive']:.2f}")
+    print(f"Neutral:  {sentiment_target['neutral']:.2f}")
+    print(f"Negative: {sentiment_target['negative']:.2f}\n")
+
+    # ---- Call sentiment-matching filter ----
+    sentiment(response["matches"], selected_id, sentiment_target)
+
+
+
+def sentiment(similar_matches, selected_id, sentiment_target):
+    print("Top 10 most similar songs based on sentiment:")
+    count = 0
+    seen = set()
+
+    for match in similar_matches:
+        meta = match["metadata"]
+        song_id = (meta["song"].lower(), meta["artist"].lower())
+
+        if song_id in seen or song_id == selected_id:
+            continue
+
+        if abs(meta.get("sentiment_positive", 0) - sentiment_target["positive"]) < 0.05 and \
+           abs(meta.get("sentiment_neutral", 0) - sentiment_target["neutral"]) < 0.05 and \
+           abs(meta.get("sentiment_negative", 0) - sentiment_target["negative"]) < 0.05:
+
+            seen.add(song_id)
+            print(f"- '{meta['song']}' by {meta['artist']} (Score: {match['score']:.4f})")
+            print("Sentiment Match:")
+            print(f"  Positive: {float(meta.get('sentiment_positive', 0)):.2f}")
+            print(f"  Neutral:  {float(meta.get('sentiment_neutral', 0)):.2f}")
+            print(f"  Negative: {float(meta.get('sentiment_negative', 0)):.2f}\n")
+
+            count += 1
+            if count == 10:
+                break
+
+    if count == 0:
+        print("No similar songs with matching sentiment found.")
+
+    
 
 
 def main():

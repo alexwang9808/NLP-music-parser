@@ -8,14 +8,17 @@ from tqdm import tqdm
 model_name = "cardiffnlp/twitter-roberta-base-sentiment"
 sentiment_model = AutoModelForSequenceClassification.from_pretrained(model_name)
 tokenizer = AutoTokenizer.from_pretrained(model_name)
+vector_model = BGEM3FlagModel("BAAI/bge-m3")
+
+pc = Pinecone(api_key="d521ba70-bedc-4b48-9af8-82dda143a820")
+index = pc.Index("nlp-project")
 
 def get_sentiment(text):
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=512)
     outputs = sentiment_model(**inputs)
     probs = softmax(outputs.logits, dim=1)
     classes = ['negative', 'neutral', 'positive']
-    scores = {cls: float(probs[0][i]) for i, cls in enumerate(classes)}
-    return scores
+    return {cls: float(probs[0][i]) for i, cls in enumerate(classes)}
 
 
 def get_embedding(text):
@@ -24,9 +27,6 @@ def get_embedding(text):
 
 if __name__ == "__main__":
     df = pd.read_csv("spotify_data.csv", delimiter=',', on_bad_lines='error')
-    vector_model = BGEM3FlagModel("BAAI/bge-m3")
-    pc = Pinecone(api_key="d521ba70-bedc-4b48-9af8-82dda143a820")
-    index = pc.Index("nlp-project")
 
     batch = []
     chunk_id = 28000

@@ -1,6 +1,8 @@
 from find_song import search_song_results, scrape_lyrics_from_url
 from read_songs import vector_model, index
-
+import matplotlib.pyplot as plt
+from collections import Counter
+import os
 
 def get_user_input():
     user_input = input("Enter song name (or 'Song by Artist'): ").strip()
@@ -69,7 +71,7 @@ def embed_and_search(lyrics, selected_title, selected_artist):
     count = 0
 
     # ---- Top 10 Most Similar Songs ----
-    print("\nTop 10 most similar songs based on lyrics:")
+    print("\nTop 10 most similar songs based on semantics:")
     for match in response["matches"]:
         meta = match["metadata"]
         song_id = (meta["song"].lower(), meta["artist"].lower())
@@ -107,12 +109,29 @@ def embed_and_search(lyrics, selected_title, selected_artist):
     print(f"Negative: {sentiment_target['negative']:.2f}\n")
 
     # ---- Call sentiment-matching filter ----
-    sentiment(response["matches"], selected_id, sentiment_target)
+    print("Filter songs by sentiment:")
+    print("1. Show similar sentiment songs")
+    print("2. Show opposite sentiment songs")
+    print("3. Show both")
+    print("4. Skip")
+    choice = input("Enter 1/2/3/4: ").strip()
+    plot_similarity_and_sentiment(response["matches"], selected_id)
+
+    
+    if choice == "1":
+        sentiment(response["matches"], selected_id, sentiment_target)
+    elif choice == "2":
+        opposite_sentiment(response["matches"], selected_id, sentiment_target)
+    elif choice == "3":
+        sentiment(response["matches"], selected_id, sentiment_target)
+        opposite_sentiment(response["matches"], selected_id, sentiment_target)
+    else:
+        print("Skipping sentiment filtering.")
 
 
 
 def sentiment(similar_matches, selected_id, sentiment_target):
-    print("Top 10 most similar songs based on sentiment:")
+    print("\nTop similar songs with matching sentiment:")
     count = 0
     seen = set()
 
@@ -123,9 +142,9 @@ def sentiment(similar_matches, selected_id, sentiment_target):
         if song_id in seen or song_id == selected_id:
             continue
 
-        if abs(meta.get("sentiment_positive", 0) - sentiment_target["positive"]) < 0.05 and \
-           abs(meta.get("sentiment_neutral", 0) - sentiment_target["neutral"]) < 0.05 and \
-           abs(meta.get("sentiment_negative", 0) - sentiment_target["negative"]) < 0.05:
+        if abs(meta.get("sentiment_positive", 0) - sentiment_target["positive"]) < 0.06 and \
+           abs(meta.get("sentiment_neutral", 0) - sentiment_target["neutral"]) < 0.06 and \
+           abs(meta.get("sentiment_negative", 0) - sentiment_target["negative"]) < 0.06:
 
             seen.add(song_id)
             print(f"- '{meta['song']}' by {meta['artist']} (Score: {match['score']:.4f})")
@@ -142,6 +161,113 @@ def sentiment(similar_matches, selected_id, sentiment_target):
         print("No similar songs with matching sentiment found.")
 
     
+def is_opposite_sentiment(meta, sentiment_target, threshold=0.4):
+    return (
+        (sentiment_target['positive'] > 0.6 and meta.get('sentiment_negative', 0) > threshold) or
+        (sentiment_target['negative'] > 0.6 and meta.get('sentiment_positive', 0) > threshold)
+    )
+    
+def opposite_sentiment(similar_matches, selected_id, sentiment_target):
+    print("\nTop similar songs but with opposite sentiment:")
+    count = 0
+    seen = set()
+
+    for match in similar_matches:
+        meta = match["metadata"]
+        song_id = (meta["song"].lower(), meta["artist"].lower())
+
+        if song_id in seen or song_id == selected_id:
+            continue
+
+        if is_opposite_sentiment(meta, sentiment_target):
+            seen.add(song_id)
+            print(f"- '{meta['song']}' by {meta['artist']} (Score: {match['score']:.4f})")
+            print("Sentiment:")
+            print(f"  Positive: {float(meta.get('sentiment_positive', 0)):.2f}")
+            print(f"  Neutral:  {float(meta.get('sentiment_neutral', 0)):.2f}")
+            print(f"  Negative: {float(meta.get('sentiment_negative', 0)):.2f}\n")
+
+            count += 1
+            if count == 10:
+                break
+
+    if count == 0:
+        print("No similar songs with opposite sentiment found.")
+
+
+def classify_sentiment(meta):
+    pos = meta.get("sentiment_positive", 0)
+    neg = meta.get("sentiment_negative", 0)
+    if pos > 0.6:
+        return "Positive"
+    elif neg > 0.6:
+        return "Negative"
+    else:
+        return "Neutral"
+
+def plot_similarity_and_sentiment(matches, selected_id, output_dir="charts"):
+    os.makedirs(output_dir, exist_ok=True)
+
+    similarity_labels = []
+    similarity_scores = []
+    sentiment_classes = []
+
+    seen = set()
+    count = 0
+
+    for match in matches:
+        meta = match["metadata"]
+        song_id = (meta["song"].lower(), meta["artist"].lower())
+
+        if song_id == selected_id or song_id in seen:
+            continue
+
+        seen.add(song_id)
+        label = f"‘{meta['song']}’ by {meta['artist']}"
+        similarity_labels.append(label)
+        similarity_scores.append(match["score"])
+        sentiment_classes.append(classify_sentiment(meta))
+
+        count += 1
+        if count == 10:
+            break
+
+    # --- Similarity Chart ---
+    plt.figure(figsize=(10, 5))
+    bars = plt.barh(similarity_labels[::-1], similarity_scores[::-1], color="#1f77b4")
+    plt.xlabel("Similarity Score")
+    plt.title("Top 10 Most Similar Songs by Semantic Embedding")
+    plt.xlim(0, 1.0)  # fix x-axis range
+
+    plt.tight_layout()
+    similarity_path = os.path.join(output_dir, "similarity_chart.png")
+    plt.savefig(similarity_path)
+    plt.close()
+    print(f"✅ Saved similarity chart to {similarity_path}")
+
+    # --- Sentiment Distribution Chart ---
+    sentiment_counts = Counter(sentiment_classes)
+    sentiment_labels = ["Positive", "Neutral", "Negative"]
+    sentiment_values = [sentiment_counts.get(label, 0) for label in sentiment_labels]
+
+    plt.figure(figsize=(6, 4))
+    bars = plt.bar(sentiment_labels, sentiment_values, color=["green", "gray", "red"])
+    plt.title("Sentiment Distribution of Top 10 Similar Songs")
+    plt.ylabel("Number of Songs")
+    plt.ylim(0, max(sentiment_values) + 1)
+
+    # Add count labels to bars
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, height + 0.2, str(int(height)),
+             ha='center', fontsize=10)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # reserves space for the title
+    sentiment_path = os.path.join(output_dir, "sentiment_distribution.png")
+    plt.savefig(sentiment_path)
+    plt.close()
+    print(f"✅ Saved sentiment chart to {sentiment_path}")
+
 
 
 def main():
@@ -170,7 +296,6 @@ def main():
         embed_and_search(lyrics, title, artist)
     else:
         print("Lyrics not found.")
-
 
 if __name__ == "__main__":
     main()

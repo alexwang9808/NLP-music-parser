@@ -4,6 +4,7 @@ from torch.nn.functional import softmax
 from FlagEmbedding import BGEM3FlagModel
 from pinecone import Pinecone
 from tqdm import tqdm
+import re
 
 model_name = "cardiffnlp/twitter-roberta-base-sentiment"
 sentiment_model = AutoModelForSequenceClassification.from_pretrained(model_name)
@@ -27,30 +28,35 @@ def get_embedding(text):
 
 if __name__ == "__main__":
     df = pd.read_csv("spotify_data.csv", delimiter=',', on_bad_lines='error')
-
     batch = []
-    chunk_id = 28000
-    for i in tqdm(range(28000, len(df))):
+
+    for i in tqdm(range(len(df))):
         lyrics = df["text"].iloc[i]
-        sentiment = get_sentiment(lyrics)
-        vector = get_embedding(lyrics)["dense_vecs"]
-        metadata = {
-            "artist": df["artist"].iloc[i],
-            "song": df["song"].iloc[i],
-            "lyrics": lyrics,
-            "sentiment_positive": sentiment["positive"],
-            "sentiment_neutral": sentiment["neutral"],
-            "sentiment_negative": sentiment["negative"],
-        }
-        batch.append({
-            "id": str(chunk_id),
-            "values": vector,
-            "metadata": metadata
-        })
-        chunk_id += 1
-        if len(batch) == 100:
-            index.upsert(vectors=batch, namespace="simple")
+        # sentiment = get_sentiment(lyrics)
+        raw_chunks = re.split(r'\n\s*\n', lyrics.strip())
+        chunks = [chunk.strip() for chunk in raw_chunks if chunk.strip()]
+
+        for j, chunk in enumerate(chunks):
+            vector = get_embedding(chunk)["dense_vecs"]
+            metadata = {
+                "artist": df["artist"].iloc[i],
+                "song": df["song"].iloc[i],
+                "chunk_id": j,
+                "chunk": chunk,
+                # "sentiment_positive": sentiment["positive"],
+                # "sentiment_neutral": sentiment["neutral"],
+                # "sentiment_negative": sentiment["negative"],
+            }
+            batch.append({
+                "id": f"{i}-{j}",
+                "values": vector,
+                "metadata": metadata
+            })
+
+        if len(batch) >= 100:
+            print("upsert")
+            index.upsert(vectors=batch, namespace="chunked")
             batch = []
 
     if batch:
-        index.upsert(vectors=batch, namespace="simple")
+        index.upsert(vectors=batch, namespace="chunked")

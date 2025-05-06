@@ -118,7 +118,6 @@
             });
             const result = await response.json();
             thinkingMessage.querySelector('.message-bubble').innerHTML = result.response.replace(/\n/g, "<br>");
-            appendMessage('bot', "Do you have another song to search for?");
         }
         function appendMessage(sender, message) {
             const chatBox = document.getElementById('chat-box');

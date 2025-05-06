@@ -31,8 +31,8 @@ def scrape_lyrics_from_url(url):
         cleaned_lines = []
         for line in lines:
             line = line.strip()
-            if not line:
-                continue  # Skip all blank lines
+            # if not line:
+            #     continue  # Skip all blank lines
             if re.match(r"^\[.*?\]$", line):
                 continue  # Skip all section headers like [Chorus]
             cleaned_lines.append(line)

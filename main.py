@@ -1,8 +1,9 @@
 from find_song import search_song_results, scrape_lyrics_from_url
-from read_songs import vector_model, index
+from read_songs import vector_model, index, get_embedding
 import matplotlib.pyplot as plt
 from collections import Counter
 import os
+from chunk import semantic_chunk_lyrics, chunk_lyrics_semantically
 
 def get_user_input():
     user_input = input("Enter song name (or 'Song by Artist'): ").strip()
@@ -135,6 +136,8 @@ def sentiment(similar_matches, selected_id, sentiment_target):
     count = 0
     seen = set()
 
+    value = ""
+
     for match in similar_matches:
         meta = match["metadata"]
         song_id = (meta["song"].lower(), meta["artist"].lower())
@@ -153,12 +156,16 @@ def sentiment(similar_matches, selected_id, sentiment_target):
             print(f"  Neutral:  {float(meta.get('sentiment_neutral', 0)):.2f}")
             print(f"  Negative: {float(meta.get('sentiment_negative', 0)):.2f}\n")
 
+            value += f"- '{meta['song']}' by {meta['artist']} (Score: {match['score']:.4f})\n"
+
             count += 1
             if count == 10:
                 break
 
     if count == 0:
         print("No similar songs with matching sentiment found.")
+
+    return value
 
     
 def is_opposite_sentiment(meta, sentiment_target, threshold=0.4):
@@ -171,6 +178,8 @@ def opposite_sentiment(similar_matches, selected_id, sentiment_target):
     print("\nTop similar songs but with opposite sentiment:")
     count = 0
     seen = set()
+
+    value = ""
 
     for match in similar_matches:
         meta = match["metadata"]
@@ -187,12 +196,16 @@ def opposite_sentiment(similar_matches, selected_id, sentiment_target):
             print(f"  Neutral:  {float(meta.get('sentiment_neutral', 0)):.2f}")
             print(f"  Negative: {float(meta.get('sentiment_negative', 0)):.2f}\n")
 
+            value += f"- '{meta['song']}' by {meta['artist']} (Score: {match['score']:.4f}\n"
+
             count += 1
             if count == 10:
                 break
 
     if count == 0:
         print("No similar songs with opposite sentiment found.")
+
+    return value
 
 
 def classify_sentiment(meta):
@@ -290,12 +303,60 @@ def main():
     print(f"\nFetching lyrics for '{title}' by {artist}...")
     lyrics = scrape_lyrics_from_url(url)
 
-    if lyrics:
-        print(f"\nLyrics for '{title}' by {artist}:\n")
-        print(lyrics)
-        embed_and_search(lyrics, title, artist)
-    else:
-        print("Lyrics not found.")
+    chunks = chunk_lyrics_semantically(lyrics, 3, 0.75)
+    query_embeddings = [get_embedding(chunk)["dense_vecs"] for chunk in chunks]
+
+    all_matches = []
+
+    for q_emb in query_embeddings:
+
+        result = index.query(
+            vector=q_emb.tolist(),
+            top_k=10,  # or more for better coverage
+            namespace="chunked",
+            include_metadata=True
+        )
+
+        all_matches.extend(result["matches"])
+
+    from collections import defaultdict
+
+    song_scores = defaultdict(lambda: {"score_sum": 0.0, "count": 0, "metadata": None})
+
+    for match in all_matches:
+        meta = match["metadata"]
+        song_key = (meta["artist"], meta["song"])
+        score = match["score"]
+
+        song_scores[song_key]["score_sum"] += score
+        song_scores[song_key]["count"] += 1
+        song_scores[song_key]["metadata"] = meta  # save one chunk's meta for display
+
+    sorted_results = sorted(song_scores.items(), key=lambda x: x[1]["score_sum"], reverse=True)
+
+    # Show top 10
+    print("Chunked Recs:")
+    for (artist, song), data in sorted_results[:10]:
+        print(f"🎵 '{song}' by {artist} - matched {data['count']} chunks, total score: {data['score_sum']/len(chunks):.4f}")
+
+    embedding = get_embedding(lyrics)["dense_vecs"]
+    response = index.query(
+        vector=embedding.tolist(),
+        top_k=10,
+        namespace="simple",
+        include_metadata=True
+    )
+
+    print("\nRegular Recs:")
+    for res in response["matches"]:
+        print(f"🎵 '{res['metadata']['song']}' by {res['metadata']['artist']} - score: {res['score']:.4f}")
+
+    # if lyrics:
+    #     print(f"\nLyrics for '{title}' by {artist}:\n")
+    #     print(lyrics)
+    #     embed_and_search(lyrics, title, artist)
+    # else:
+    #     print("Lyrics not found.")
 
 if __name__ == "__main__":
     main()

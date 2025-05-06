@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from chatbot import chatting
 from pathlib import Path
 
-app = Flask(__name__, static_folder='C:/Users/aaron/NLP-song-recommender')
+app = Flask(__name__, static_folder='C:/Users/Alex/Desktop/personal-projects/NLP/final-project')
 
 @app.route('/')
 def index():

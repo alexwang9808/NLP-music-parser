@@ -236,7 +236,7 @@ def plot_similarity_and_sentiment(matches, selected_id, output_dir="charts"):
     plt.figure(figsize=(10, 5))
     bars = plt.barh(similarity_labels[::-1], similarity_scores[::-1], color="#1f77b4")
     plt.xlabel("Similarity Score")
-    plt.title("Top 10 Most Similar Songs by Semantic Embedding")
+    plt.title(f"Top 10 Semantically Similar Songs to '{selected_id[0].title()}'")
     plt.xlim(0, 1.0)  # fix x-axis range
 
     plt.tight_layout()

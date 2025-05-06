@@ -117,21 +117,25 @@
                 body: JSON.stringify({ message: message })
             });
             const result = await response.json();
-            thinkingElement.querySelector('.message-bubble').innerHTML = result.response.replace(/\n/g, "<br>");
+            thinkingMessage.querySelector('.message-bubble').innerHTML = result.response.replace(/\n/g, "<br>");
             //appendMessage('bot', result.response);
         }
-
         function appendMessage(sender, message) {
             const chatBox = document.getElementById('chat-box');
             const messageElement = document.createElement('div');
             messageElement.classList.add('message', sender);
+
             const bubbleElement = document.createElement('div');
             bubbleElement.classList.add('message-bubble');
             bubbleElement.innerHTML = message.replace(/\n/g, '<br>');
+
             messageElement.appendChild(bubbleElement);
             chatBox.appendChild(messageElement);
             chatBox.scrollTop = chatBox.scrollHeight;
-        }</script>
+
+            return messageElement;
+        }
+        </script>
 </head>
 <body>
     <h1>Chatbot</h1>

@@ -21,11 +21,17 @@ find_song.py           # Genius API + lyrics scraper
 
 read_songs.py          # Embedding + sentiment utilities
 
+chunk.py               # Handles chunking logic
+
+chunk_lyrics.py        # Handles chunking logic (copy for testing)
+
 spotify_data.csv       # Dataset of all songs + lyrics
 
 charts/                # Location of generated similarity/sentiment visualizations
 
 requirements.txt       # Python packages for easy installation (pip install -r)
+
+Report.pdf             # Project report
 
 
 ------------------------------------------------------------

@@ -1,9 +1,9 @@
 from find_song import search_song_results, scrape_lyrics_from_url
-from read_songs import vector_model, index, get_embedding
+from read_songs import vector_model, index, get_embedding, get_sentiment
 import matplotlib.pyplot as plt
 from collections import Counter
 import os
-from chunk import semantic_chunk_lyrics, chunk_lyrics_semantically
+from chunk_lyrics import semantic_chunk_lyrics, chunk_lyrics_semantically
 
 def get_user_input():
     user_input = input("Enter song name (or 'Song by Artist'): ").strip()
@@ -113,18 +113,14 @@ def embed_and_search(lyrics, selected_title, selected_artist):
     print("Filter songs by sentiment:")
     print("1. Show similar sentiment songs")
     print("2. Show opposite sentiment songs")
-    print("3. Show both")
-    print("4. Skip")
-    choice = input("Enter 1/2/3/4: ").strip()
+    print("3. Skip")
+    choice = input("Enter 1/2/3: ").strip()
     plot_similarity_and_sentiment(response["matches"], selected_id)
 
     
     if choice == "1":
         sentiment(response["matches"], selected_id, sentiment_target)
     elif choice == "2":
-        opposite_sentiment(response["matches"], selected_id, sentiment_target)
-    elif choice == "3":
-        sentiment(response["matches"], selected_id, sentiment_target)
         opposite_sentiment(response["matches"], selected_id, sentiment_target)
     else:
         print("Skipping sentiment filtering.")
@@ -168,11 +164,29 @@ def sentiment(similar_matches, selected_id, sentiment_target):
     return value
 
     
-def is_opposite_sentiment(meta, sentiment_target, threshold=0.4):
-    return (
-        (sentiment_target['positive'] > 0.6 and meta.get('sentiment_negative', 0) > threshold) or
-        (sentiment_target['negative'] > 0.6 and meta.get('sentiment_positive', 0) > threshold)
-    )
+def is_opposite_sentiment(meta, sentiment_target):
+    def get_dominant(sentiment_dict):
+        return max(sentiment_dict, key=sentiment_dict.get)
+
+    # Get dominant sentiment of the selected song
+    target_class = get_dominant(sentiment_target)
+
+    # Compute match song sentiment live if lyrics are available
+    lyrics = meta.get("lyrics")
+    if not lyrics:
+        return False
+    match_sentiment = get_sentiment(lyrics)
+    match_class = get_dominant(match_sentiment)
+
+    # Define opposites
+    opposite_map = {
+        "positive": "negative",
+        "negative": "positive",
+        "neutral": "positive"  # or "negative", or skip neutral entirely
+    }
+
+    return match_class == opposite_map.get(target_class)
+
     
 def opposite_sentiment(similar_matches, selected_id, sentiment_target):
     print("\nTop similar songs but with opposite sentiment:")

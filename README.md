@@ -7,15 +7,24 @@ A web-based chatbot that lets users search songs, view lyrics, and discover simi
 Project Structure
 ------------------------------------------------------------
 
-app.py----------------# Flask web logic
-chatbot.py------------# Chat logic
-main.py---------------# CLI version of program (contains all main functions)
-index.html------------# Chatbot frontend
-find_song.py----------# Genius API + lyrics scraper
-read_songs.py---------# Embedding + sentiment utilities
-spotify_data.csv------# Dataset of all songs + lyrics
-charts/---------------# Location of generated similarity/sentiment visualizations
-requirements.txt------# Necessary Python packages (for easy pip install)
+app.py                 # Flask web logic
+
+chatbot.py             # Chat interaction logic
+
+main.py                # CLI version of the program (contains all main functions)
+
+index.html             # Chatbot frontend UI
+
+find_song.py           # Genius API + lyrics scraper
+
+read_songs.py          # Embedding + sentiment utilities
+
+spotify_data.csv       # Dataset of all songs + lyrics
+
+charts/                # Location of generated similarity/sentiment visualizations
+
+requirements.txt       # Python packages for easy installation (pip install -r)
+
 
 ------------------------------------------------------------
 Features

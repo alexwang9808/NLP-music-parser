@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 90%;
+            height: 80%;
+            max-width: 1400px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .message {
+            margin: 10px 0;
+            display: flex;
+        }
+
+            .message.user {
+                justify-content: flex-end;
+            }
+
+            .message.bot {
+                justify-content: flex-start;
+            }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.user .message-bubble {
+            background-color: #0084ff;
+            color: #fff;
+            border-bottom-right-radius: 0;
+        }
+
+        .message.bot .message-bubble {
+            background-color: #f1f0f0;
+            color: #000;
+            border-bottom-left-radius: 0;
+        }
+
+        #input-form {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #f4f4f9;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        #sendButton {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #0084ff;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            outline: none;
+        }
+
+            #sendButton:hover {
+                background-color: #006bbf;
+            }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>async function sendMessage(event) {
+            event.preventDefault();
+            const inputElement = document.getElementById('messageInput');
+            const message = inputElement.value;
+            inputElement.value = '';
+            appendMessage('user', message);
+
+            const response = await fetch('http://127.0.0.1:5000/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            });
+            const result = await response.json();
+            appendMessage('bot', result.response);
+        }
+
+        function appendMessage(sender, message) {
+            const chatBox = document.getElementById('chat-box');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            const bubbleElement = document.createElement('div');
+            bubbleElement.classList.add('message-bubble');
+            bubbleElement.innerHTML = message.replace(/\n/g, '<br>');
+            messageElement.appendChild(bubbleElement);
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }</script>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    <div id="chat-container">
+        <div id="chat-box">
+            <div class="message bot">
+                <div class="message-bubble">
+                    Please input a song name (or 'song by artist').
+                </div>
+            </div>
+        </div>
+        <form id="input-form" onsubmit="sendMessage(event)">
+            <input type="text" id="messageInput" name="message" required>
+            <button type="submit" id="sendButton">Send</button>
+        </form>
+    </div>
+</body>
+</html>

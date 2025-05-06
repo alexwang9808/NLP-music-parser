@@ -33,7 +33,7 @@ Overview
 ------------------------------------------------------------
 
 1. Data Collection
-    - Acquired a dataset of 57,650 songs from Spotify Million Song Dataset on Kaggle.
+    - Acquired a dataset of 57,650 songs from Spotify Million Song Dataset (https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset).
     - Each song was preprocessed to generate vector embeddings and sentiment metadata, which were stored in a Pinecone vector database.
 2. Song searching through Genius API
     - We used the Genius API to retrieve up to 10 matching results based on a user-inputted song name.
@@ -42,7 +42,7 @@ Overview
     - We used BAAI's BGE-M3 model: (https://huggingface.co/BAAI/bge-m3).
     - It returns the top 10 most semantically similar songs based on cosine similarity.
 4. Sentiment Analysis
-    - We used CardiffNLP's Twitter RoBERTa model, trained on 58M tweets: https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment.
+    - We used CardiffNLP's Twitter RoBERTa model, trained on 58M tweets: (https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment).
     - Each song is classified as positive, neutral, or negative, enabling sentiment-based recommendations such as similar or opposite moods.
 5. Interactive Chatbot
     - Integrated a web-based chatbot using the OpenAI GPT-4o API.

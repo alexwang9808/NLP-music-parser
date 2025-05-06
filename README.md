@@ -29,18 +29,18 @@ requirements.txt       # Python packages for easy installation (pip install -r)
 
 
 ------------------------------------------------------------
-Features
+Overview
 ------------------------------------------------------------
 
-- Input a song name (or 'Song' by 'Artist')
-- Automatically searches Genius API to obtain song lyrics
-- Embeds lyrics using BGE-M3 FlagEmbedding
-- Returns top 10 semantically similar songs
-- Analyzes sentiment: positive / neutral / negative
-- Generates charts for:
-    - Semantic similarity scores
-    - Sentiment distribution
-- Interactive chatbot interface (Flask + HTML)
+1. Data Collection: 57650 songs acquired from https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset
+    - We trained our model to include vector embedding from BGE-M3 FlagEmbedding and sentiment from cardiffnlp/twitter-roberta-base-sentiment.
+    - Database stored in Pinecone.
+2. Song searching through Genius API
+    - Gives the user 10 options for the song they want due to many songs having the same name
+3. Vector Similarity
+   -
+4. Sentiment Analysis
+5. 
 
 ------------------------------------------------------------
 Visualizations

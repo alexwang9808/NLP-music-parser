@@ -32,15 +32,21 @@ requirements.txt       # Python packages for easy installation (pip install -r)
 Overview
 ------------------------------------------------------------
 
-1. Data Collection: 57650 songs acquired from https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset
-    - We trained our model to include vector embedding from BGE-M3 FlagEmbedding and sentiment from cardiffnlp/twitter-roberta-base-sentiment.
-    - Database stored in Pinecone.
+1. Data Collection
+    - Acquired a dataset of 57,650 songs from Spotify Million Song Dataset on Kaggle.
+    - Each song was preprocessed to generate vector embeddings and sentiment metadata, which were stored in a Pinecone vector database.
 2. Song searching through Genius API
-    - Gives the user 10 options for the song they want due to many songs having the same name
-3. Vector Similarity
-   -
+    - Users input a song name, and the system uses the Genius API to retrieve up to 10 matching results.
+    - This disambiguates songs with common titles or multiple versions.
+3. Vector Similarity Matching
+    - We used BAAI's BGE-M3 model: (https://huggingface.co/BAAI/bge-m3).
+    - Returns the top 10 most semantically similar songs based on cosine similarity.
 4. Sentiment Analysis
-5. 
+    - We used CardiffNLP's Twitter RoBERTa model, trained on 58M tweets: https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment.
+    - Each song is classified as positive, neutral, or negative, enabling sentiment-based recommendations such as similar or opposite moods.
+5. Interactive Chatbot
+    - Integrated a web-based chatbot using the OpenAI GPT-4o API.
+    - The chatbot guides users through the search and recommendation process, and dynamically adjusts based on user sentiment preferences.
 
 ------------------------------------------------------------
 Visualizations

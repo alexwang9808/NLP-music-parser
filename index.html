@@ -106,6 +106,9 @@
             inputElement.value = '';
             appendMessage('user', message);
 
+            //Thinking message
+            const thinkingMessage = appendMessage('bot', "Thinking...");
+
             const response = await fetch('http://127.0.0.1:5000/chat', {
                 method: 'POST',
                 headers: {
@@ -114,7 +117,8 @@
                 body: JSON.stringify({ message: message })
             });
             const result = await response.json();
-            appendMessage('bot', result.response);
+            thinkingElement.querySelector('.message-bubble').innerHTML = result.response.replace(/\n/g, "<br>");
+            //appendMessage('bot', result.response);
         }
 
         function appendMessage(sender, message) {

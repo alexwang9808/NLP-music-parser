@@ -18,23 +18,6 @@ charts/---------------# Location of generated similarity/sentiment visualization
 requirements.txt------# Necessary Python packages (for easy pip install)
 
 ------------------------------------------------------------
-How to Run
-------------------------------------------------------------
-
-1. Clone the repo or download the source files.
-
-2. Install required packages:
-   pip install -r requirements.txt
-
-3. To run the web chatbot:
-   python app.py
-   Then open http://127.0.0.1:5000/ in your browser.
-
-4. (Optional Alternative) 
-   To run the CLI chatbot:
-   python main.py
-
-------------------------------------------------------------
 Features
 ------------------------------------------------------------
 
@@ -69,13 +52,22 @@ Main libraries:
 All are listed in `requirements.txt`
 
 ------------------------------------------------------------
-Notes
+How to Run
 ------------------------------------------------------------
 
-- HuggingFace models download automatically on first run.
-- Ensure spotify_data.csv includes columns: artist, song, text.
-- Charts will be saved to the charts/ directory.
+1. Clone the repo or download the source files.
 
+2. Install required packages:
+   pip install -r requirements.txt
+
+3. To run the web chatbot:
+   python app.py
+   Then open http://127.0.0.1:5000/ in your browser.
+
+4. (Optional Alternative) 
+   To run the CLI chatbot:
+   python main.py
+   
 ------------------------------------------------------------
 Names
 ------------------------------------------------------------

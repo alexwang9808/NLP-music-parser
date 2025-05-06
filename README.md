@@ -41,6 +41,12 @@ Features
 - Interactive chatbot interface (Flask + HTML)
 
 ------------------------------------------------------------
+Visualizations
+------------------------------------------------------------
+![image](https://github.com/user-attachments/assets/4d0af42f-2860-4b9d-92e7-f440cdd3f9c4)
+![image](https://github.com/user-attachments/assets/29016c7a-f889-4cbd-8d7a-bd22654de16b)
+
+------------------------------------------------------------
 Requirements
 ------------------------------------------------------------
 
@@ -78,7 +84,7 @@ How to Run
    python main.py
    
 ------------------------------------------------------------
-Names
+Contributors
 ------------------------------------------------------------
 
 Created by: Aaron Chang, Jichuan Li, Alex Wang

@@ -3,6 +3,8 @@ NLP Song Recommender Chatbot
 
 A web-based chatbot that lets users search songs, view lyrics, and discover similar tracks using semantic similarity and sentiment analysis. Built with modern NLP models, vector embeddings, Pinecone indexing, and dynamic chart visualizations.
 
+![image](https://github.com/user-attachments/assets/a17ad412-e0a5-492b-a1d2-51053d3902cc)
+
 ------------------------------------------------------------
 Project Structure
 ------------------------------------------------------------

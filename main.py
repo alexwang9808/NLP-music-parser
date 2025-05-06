@@ -60,7 +60,7 @@ def embed_and_search(lyrics, selected_title, selected_artist):
 
     response = index.query(
         vector=embedding.tolist(),
-        top_k=50,  # fetch more for sentiment filtering
+        top_k=20,  # fetch more for sentiment filtering
         namespace="simple",
         include_metadata=True
     )
@@ -243,7 +243,7 @@ def plot_similarity_and_sentiment(matches, selected_id, output_dir="charts"):
     similarity_path = os.path.join(output_dir, "similarity_chart.png")
     plt.savefig(similarity_path)
     plt.close()
-    print(f"✅ Saved similarity chart to {similarity_path}")
+    print(f"Saved similarity chart to {similarity_path}")
 
     # --- Sentiment Distribution Chart ---
     sentiment_counts = Counter(sentiment_classes)
@@ -266,7 +266,7 @@ def plot_similarity_and_sentiment(matches, selected_id, output_dir="charts"):
     sentiment_path = os.path.join(output_dir, "sentiment_distribution.png")
     plt.savefig(sentiment_path)
     plt.close()
-    print(f"✅ Saved sentiment chart to {sentiment_path}")
+    print(f"Saved sentiment chart to {sentiment_path}")
 
 
 

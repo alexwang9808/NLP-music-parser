@@ -27,7 +27,7 @@ def get_embedding(text):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("spotify_data.csv", delimiter=',', on_bad_lines='error')
+    df = pd.read_csv("Data/spotify_data.csv", delimiter=',', on_bad_lines='error')
     batch = []
 
     for i in tqdm(range(len(df))):

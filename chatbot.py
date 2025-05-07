@@ -1,9 +1,7 @@
 from find_song import search_song_results, scrape_lyrics_from_url
-from read_songs import get_embedding, vector_model, index, get_sentiment
+from read_songs import get_embedding, index, get_sentiment
 from main import parse_query, filter_search_results, sentiment, opposite_sentiment
-import os
 from openai import OpenAI
-
 
 model_name = "gpt-4o"
 
@@ -46,7 +44,7 @@ def chatting(user_input):
                 "You are a helpful and friendly music assistant. Introduce the following list of songs warmly, "
                 "mention that they share a similar mood or vibe with the user's selected song, and invite them to explore."
                 "Provide genius link for each song in this format: <a href='link' target='_blank'>name of song</a>"
-                "At the end, give them the option to try the other 3 list items: opposite sentiment, both or skip."
+                "At the end, give them the option to try the other 3 list items which you number: similar sentiment again, opposite sentiment, or skip."
                 "Present the list to the user in a friendly way with no emojis, and clearly ask them to pick one by replying with a number."
             )
         elif choice == 2:
@@ -57,28 +55,15 @@ def chatting(user_input):
                 "You are a fun, music-savvy assistant. Present this list as a mood switch from the user's original song, "
                 "maybe describe it as a playlist flip or emotional contrast."
                 "Provide genius link for each song in this format: <a href='link' target='_blank'>name of song</a>"
-                "At the end, give them the option to try the other 3 list items: similar sentiment, both or skip."
+                "At the end, give them the option to try the 3 list items which you number: similar sentiment, opposite sentiment again, or skip."
                 "Present the list to the user in a friendly way with no emojis, and clearly ask them to pick one by replying with a number."
             )
         elif choice == 3:
-            similar = sentiment(song_results, selected_id, sentiment_target)
-            opposite = opposite_sentiment(song_results, selected_id, sentiment_target)
-            return chatbot_chat(
-                f"The user asked for both similar and opposite sentiment songs.\n\n"
-                f"Similar Mood Songs:\n{similar}\n\n"
-                f"Opposite Mood Songs:\n{opposite}",
-                "You're a music guide with personality. Introduce these two groups: the first matches the mood of the user's song, "
-                "and the second flips it. Be clear, warm, and inviting."
-                "Provide genius link for each song in this format: <a href='link' target='_blank'>name of song</a>"
-                "At the end, give them the option to try the other 3 list items: similar sentiment, opposite sentiment, or skip."
-                "Present the list to the user in a friendly way with no emojis, and clearly ask them to pick one by replying with a number."
-            )
-        elif choice == 4:
             session_state["mode"] = None
             session_state["selected"] = None
             return chatbot_chat(
                 "The user skipped the sentiment filtering option.",
-                "Say 'No problem!' and gently ask if there's another song or artist they’d like help with."
+                "Say 'No problem!' and gently prompt the user to tell you another song they would like to explore."
             )
         else:
             return chatbot_chat("The user input an invalid number.",
@@ -100,8 +85,8 @@ def chatting(user_input):
                 return chatbot_chat(f"The user selected option {choice}. Here's the result:\n{song_result}.",
                                     "You are a helpful assistant that explains song recommendations in a warm way. Avoid emojis."
                                     "Provide genius link for each song in this format: <a href='link' target='_blank'>name of song</a>"
-                                    "At the end, give them the option to filter by sentiment with 4 list items:"
-                                    "similar sentiment, opposite sentiment, both or skip."
+                                    "At the end, give them the option to filter by sentiment with 3 list items:"
+                                    "similar sentiment, opposite sentiment, or skip."
                                     "Present the list to the user in a friendly way with no emojis, and clearly ask them to pick one by replying with a number.")
             else:
                 # return "Invalid number. Please enter a number from the list."

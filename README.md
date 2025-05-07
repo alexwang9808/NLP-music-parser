@@ -3,7 +3,7 @@ NLP Song Recommender Chatbot
 
 A web-based chatbot that lets users search songs, view lyrics, and discover similar tracks using semantic similarity and sentiment analysis. Built with modern NLP models, vector embeddings, Pinecone indexing, and dynamic chart visualizations.
 
-![image](https://github.com/user-attachments/assets/a17ad412-e0a5-492b-a1d2-51053d3902cc)
+![image](https://github.com/user-attachments/assets/398492ae-b773-4864-85fa-46bffa50df11)
 
 ------------------------------------------------------------
 Project Structure
@@ -21,26 +21,38 @@ find_song.py           # Genius API + lyrics scraper
 
 read_songs.py          # Embedding + sentiment utilities
 
+chunk.py               # Handles chunking logic
+
+chunk_lyrics.py        # Handles chunking logic (copy for testing)
+
 spotify_data.csv       # Dataset of all songs + lyrics
 
 charts/                # Location of generated similarity/sentiment visualizations
 
 requirements.txt       # Python packages for easy installation (pip install -r)
 
+Report.pdf             # Project report
+
 
 ------------------------------------------------------------
-Features
+Overview
 ------------------------------------------------------------
 
-- Input a song name (or 'Song' by 'Artist')
-- Automatically searches Genius API to obtain song lyrics
-- Embeds lyrics using BGE-M3 FlagEmbedding
-- Returns top 10 semantically similar songs
-- Analyzes sentiment: positive / neutral / negative
-- Generates charts for:
-    - Semantic similarity scores
-    - Sentiment distribution
-- Interactive chatbot interface (Flask + HTML)
+1. Data Collection
+    - Acquired a dataset of 57,650 songs from Spotify Million Song Dataset (https://www.kaggle.com/datasets/notshrirang/spotify-million-song-dataset).
+    - Each song was preprocessed to generate vector embeddings and sentiment metadata, which were stored in a Pinecone vector database.
+2. Song searching through Genius API
+    - We used the Genius API to retrieve up to 10 matching results based on a user-inputted song name.
+    - This disambiguates songs with common titles or multiple versions.
+3. Vector Similarity Matching
+    - We used BAAI's BGE-M3 model: (https://huggingface.co/BAAI/bge-m3).
+    - It returns the top 10 most semantically similar songs based on cosine similarity.
+4. Sentiment Analysis
+    - We used CardiffNLP's Twitter RoBERTa model, trained on 58M tweets: (https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment).
+    - Each song is classified as positive, neutral, or negative, enabling sentiment-based recommendations such as similar or opposite moods.
+5. Interactive Chatbot
+    - Integrated a web-based chatbot using the OpenAI GPT-4o API.
+    - The chatbot guides users through the search and recommendation process and dynamically adjusts based on user sentiment preferences.
 
 ------------------------------------------------------------
 Visualizations
@@ -65,6 +77,7 @@ Main libraries:
 - FlagEmbedding
 - pinecone-client
 - beautifulsoup4
+- openai
 
 All are listed in `requirements.txt`
 
@@ -85,6 +98,10 @@ How to Run
    To run the CLI chatbot:
    python main.py
    
+------------------------------------------------------------
+Demo
+------------------------------------------------------------
+https://youtu.be/l88OfJhWgq0
 ------------------------------------------------------------
 Contributors
 ------------------------------------------------------------

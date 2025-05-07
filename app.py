@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify, send_from_directory
-from chatbot import chatting
+from Backend.chatbot import chatting
 from pathlib import Path
 
-app = Flask(__name__, static_folder='.')
+app = Flask(__name__, static_folder='.//Frontend//')
 
 @app.route('/')
 def index():

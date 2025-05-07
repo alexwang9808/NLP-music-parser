@@ -3,7 +3,6 @@ from Backend.read_songs import get_embedding, index, get_sentiment
 from main import parse_query, filter_search_results, sentiment, opposite_sentiment
 from openai import OpenAI
 
-
 model_name = "gpt-4o"
 
 session_state = {

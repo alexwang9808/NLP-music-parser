@@ -1,9 +1,9 @@
-from find_song import search_song_results, scrape_lyrics_from_url
-from read_songs import vector_model, index, get_embedding, get_sentiment
+from Backend.find_song import search_song_results, scrape_lyrics_from_url
+from Backend.read_songs import vector_model, index, get_embedding, get_sentiment
 import matplotlib.pyplot as plt
 from collections import Counter
 import os
-from chunk_lyrics import semantic_chunk_lyrics, chunk_lyrics_semantically
+from Backend.chunk_lyrics import semantic_chunk_lyrics, chunk_lyrics_semantically
 
 def get_user_input():
     user_input = input("Enter song name (or 'Song by Artist'): ").strip()

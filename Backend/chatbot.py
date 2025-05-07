@@ -1,5 +1,5 @@
-from find_song import search_song_results, scrape_lyrics_from_url
-from read_songs import get_embedding, index, get_sentiment
+from Backend.find_song import search_song_results, scrape_lyrics_from_url
+from Backend.read_songs import get_embedding, index, get_sentiment
 from main import parse_query, filter_search_results, sentiment, opposite_sentiment
 from openai import OpenAI
 
@@ -45,7 +45,7 @@ def chatting(user_input):
                 "You are a helpful and friendly music assistant. Introduce the following list of songs warmly, "
                 "mention that they share a similar mood or vibe with the user's selected song, and invite them to explore."
                 "Provide genius link for each song in this format: <a href='link' target='_blank'>name of song</a>"
-                "At the end, give them the option to try the other 3 list items which you number: similar sentiment again, opposite sentiment, or skip."
+                "At the end, give them the option to try the 3 list items which you number: similar sentiment again, opposite sentiment, or skip."
                 "Present the list to the user in a friendly way with no emojis, and clearly ask them to pick one by replying with a number."
             )
         elif choice == 2:

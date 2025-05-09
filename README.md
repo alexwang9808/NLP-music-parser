@@ -13,7 +13,7 @@ app.py                 # Flask web logic
 
 chatbot.py             # Chat interaction logic
 
-main.py                # CLI version of the program (contains all main functions)
+main.py                # contains all main functions
 
 Frontend/
 index.html             # Chatbot frontend UI
@@ -27,7 +27,7 @@ Backend/chunk.py       # Handles chunking logic
 Backend/chunk_lyrics.py# Handles chunking logic (copy for testing)
 
 Data/
-spotify_data.csv       # Dataset of all songs + lyrics
+spotify_data.csv       # Dataset of all songs, artists, lyrics
 
 charts/                # Location of generated similarity/sentiment visualizations
 
